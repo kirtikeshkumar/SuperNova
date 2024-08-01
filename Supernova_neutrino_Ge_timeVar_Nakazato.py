@@ -43,8 +43,8 @@ for i in range(len(time_values)):
         deltime = 0.5*(float(time_values[i+1])-float(time_values[i-1]))
     deltime_values=np.append(deltime_values,deltime)
 ############################################################################
-ll = 375
-hl = len(time_values)
+ll = 75
+hl = 76
 
 pl.rcParams['font.size']=18
 #from tqdm import tqdm
@@ -83,21 +83,27 @@ Enu_min = 0
 Enu_max = 0
 mass = 100.0 #target mass in kg
 
+CountGe10eVth = {}
+CountGe50eVth = {}
+CountGe100eVth= {}
+
+CountSap100eVth= {}
+
 avgNumEvtGe10eVee = {}
 avgNumEvtGe100eVee = {}
-avgNumEvtGe170eVee = {}
+avgNumEvtGe50eVee = {}
 
 avgNumEvtGe10eVth = {}
 avgNumEvtGe100eVth = {}
-avgNumEvtGe170eVth = {}
+avgNumEvtGe50eVth = {}
 
 stdevNumEvtGe10eVee = {}
 stdevNumEvtGe100eVee = {}
-stdevNumEvtGe170eVee = {}
+stdevNumEvtGe50eVee = {}
 
 stdevNumEvtGe10eVth = {}
 stdevNumEvtGe100eVth = {}
-stdevNumEvtGe170eVth = {}
+stdevNumEvtGe50eVth = {}
 
 avgNumEvtSap50eVth = {}
 avgNumEvtSap100eVth = {}
@@ -264,9 +270,9 @@ f_O = 3*A_O/(A_Al+A_O)
 
 
 for time in time_values[ll:hl]:
-   print(time," : Now Loading : data/intp3003/intp3003_"+time+".dat" )
+   print(time," : Now Loading : data/intp2001/intp2001_"+time+".dat" )
    ##data = np.loadtxt("SNn_TimeIntegrated_"+SNmass+"M"+revTime+".dat") #MeV vs No./MeV
-   data = np.loadtxt("data/intp3003/intp3003_"+time+".dat") #MeV vs No./MeV
+   data = np.loadtxt("data/intp2001/intp2001_"+time+".dat") #MeV vs No./MeV
    ########################################################################
    ##                       Normalization for Reactor                    ##
    ########################################################################
@@ -332,8 +338,8 @@ for time in time_values[ll:hl]:
    ER_max_Sapphire = 1000
    ##ER_max_Ge = 1000 ##upper cutoff in keV taken since 4 order of magnitude reduction in evt rate
    ##ER_max_Sapphire = 1000
-   E_R1=np.logspace(-3.0, np.log10(ER_max_Ge), 51) ## bin the recoil energies upto upper cutoff ER_max
-   E_R2=np.logspace(-3.0, np.log10(ER_max_Sapphire), 51)
+   E_R1=np.logspace(-3.0, np.log10(ER_max_Ge), 201) ## bin the recoil energies upto upper cutoff ER_max
+   E_R2=np.logspace(-3.0, np.log10(ER_max_Sapphire), 201)
    ##E_R1=np.linspace(0.001, ER_max_Ge, 201)
    ##E_R2=np.linspace(0.001, ER_max_Sapphire, 201)
    diffRate_CEvNS = np.vectorize(differentialRate_CEvNS)
@@ -366,6 +372,12 @@ for time in time_values[ll:hl]:
 
    print("Counts Ge: ", sum(CountGe))
    print("Counts Sapphire: ", sum(CountAl2O3))
+
+   CountGe10eVth[time] = sum(CountGe[np.where(E_R1>0.01)[0][0]:])
+   CountGe50eVth[time] = sum(CountGe[np.where(E_R1>0.05)[0][0]:])
+   CountGe100eVth[time] = sum(CountGe[np.where(E_R1>0.1)[0][0]:])
+
+   CountSap100eVth[time] = sum(CountAl2O3[np.where(E_R2>0.1)[0][0]:])
 
    ##
    ##pl.xscale('log')
@@ -474,16 +486,16 @@ for time in time_values[ll:hl]:
    ##sigESapphire = lambda er: 0.00078221*er*er-0.0118612*er+0.20143 #Fit from Nuclear Inst. and Methods in Physics Research, A 1046 (2023) 167634
    sigESapphire = lambda er: np.sqrt(0.00286518*er+0.025*0.025) #Fit from 2203.15903
 
-   numruns=50
+   numruns=300
    numfinevts=np.zeros(numruns)
    numsimevtGe=np.zeros(numruns)
    numsimevtAl2O3=np.zeros(numruns)
    numevt10eV=np.zeros(numruns)
    numevt100eV=np.zeros(numruns)
-   numevt170eV=np.zeros(numruns)
+   numevt50eV=np.zeros(numruns)
    numevt10eVnr=np.zeros(numruns)
    numevt100eVnr=np.zeros(numruns)
-   numevt170eVnr=np.zeros(numruns)
+   numevt50eVnr=np.zeros(numruns)
    numevtSapphire=np.zeros(numruns)
    numevtSapphire50eV=np.zeros(numruns)
    evtnormEheatall= np.array([])
@@ -500,8 +512,8 @@ for time in time_values[ll:hl]:
        ##   Generating recoil energy events in Ge as per the distribution    ##
        ########################################################################
        numevtsGe=np.random.poisson(sum(CountGe))   ## num of events to simulate assume a poisson statistics with mean given by the expected number
-   ##    print("Run Number: ",run)
-   ##    print("Number of events simulated in Ge: ", numevtsGe)
+       print("Run Number: ",run)
+       print("Number of events simulated in Ge: ", numevtsGe)
        numsimevtGe[run] = numevtsGe
        evtErecGe = draw_from_hist(CountGe, E_R1, numevtsGe)
        evtErecGe = np.array(evtErecGe)
@@ -601,26 +613,26 @@ for time in time_values[ll:hl]:
    ##    print("number of surface events: ", len(evtnormEheatveto))
        numevt10eV[run]=len(evtnormEheat[(evtnormEheat)>0.01])
        numevt100eV[run]=len(evtnormEheat[(evtnormEheat)>0.1])
-       numevt170eV[run]=len(evtnormEheat[(evtnormEheat)>0.17])
+       numevt50eV[run]=len(evtnormEheat[(evtnormEheat)>0.17])
        numevt10eVnr[run]=len(Eheat[(Eheat)>0.01])
        numevt100eVnr[run]=len(Eheat[(Eheat)>0.1])
-       numevt170eVnr[run]=len(Eheat[(Eheat)>0.17])
+       numevt50eVnr[run]=len(Eheat[(Eheat)>0.17])
 
    avgNumEvtGe10eVee[time] = np.average(numevt10eV)
    avgNumEvtGe100eVee[time] = np.average(numevt100eV)
-   avgNumEvtGe170eVee[time] = np.average(numevt170eV)
+   avgNumEvtGe50eVee[time] = np.average(numevt50eV)
 
    avgNumEvtGe10eVth[time] = np.average(numevt10eVnr)
    avgNumEvtGe100eVth[time] = np.average(numevt100eVnr)
-   avgNumEvtGe170eVth[time] = np.average(numevt170eVnr)
+   avgNumEvtGe50eVth[time] = np.average(numevt50eVnr)
 
    stdevNumEvtGe10eVee[time] = np.std(numevt10eV)
    stdevNumEvtGe100eVee[time] = np.std(numevt100eV)
-   stdevNumEvtGe170eVee[time] = np.std(numevt170eV)
+   stdevNumEvtGe50eVee[time] = np.std(numevt50eV)
 
    stdevNumEvtGe10eVth[time] = np.std(numevt10eVnr)
    stdevNumEvtGe100eVth[time] = np.std(numevt100eVnr)
-   stdevNumEvtGe170eVth[time] = np.std(numevt170eVnr)
+   stdevNumEvtGe50eVth[time] = np.std(numevt50eVnr)
 
    avgNumEvtSap50eVth[time] = np.average(numevtSapphire50eV)
    avgNumEvtSap100eVth[time] = np.average(numevtSapphire)
@@ -630,14 +642,15 @@ for time in time_values[ll:hl]:
 
 writefnameGe = "SNn_Counts_Ge"+time_values[ll]+"s-"+time_values[hl-1]+"s.dat"
 wf = open("data/intp2001_Ge/"+writefnameGe,'wt')
-line0 = "time \t delTime \t\t mean eVee \t \t stdev eVee \t \t mean eVth \t \t stdev eVth \n"
-line1 = " \t  \t 10 \t 100 \t 170 \t 10 \t 100 \t 170 \t 10 \t 100 \t 170 \t 10 \t 100 \t 170 \n"
+line0 = "time \t delTime \t\t mean eVee \t \t stdev eVee \t \t mean eVth \t \t stdev eVth \t \t CountGe \n"
+line1 = " \t  \t 10 \t 100 \t 50 \t 10 \t 100 \t 50 \t 10 \t 100 \t 50 \t 10 \t 100 \t 50 \t 10 \t 100 \t 50 \n"
 wf.writelines(line0)
 wf.writelines(line1)
 
 for key in avgNumEvtGe10eVee.keys():
-    line2 = str(key)+" \t "+str(deltime_values[time_values.index(key)])+" \t "+str(avgNumEvtGe10eVee[key])+" \t "+str(avgNumEvtGe100eVee[key])+" \t "+str(avgNumEvtGe170eVee[key])+" \t "+str(stdevNumEvtGe10eVee[key])+" \t "+str(stdevNumEvtGe100eVee[key])+" \t "+str(stdevNumEvtGe170eVee[key])
-    line2 = line2 + " \t "+str(avgNumEvtGe10eVth[key])+" \t "+str(avgNumEvtGe100eVth[key])+" \t "+str(avgNumEvtGe170eVth[key])+" \t "+str(stdevNumEvtGe10eVth[key])+" \t "+str(stdevNumEvtGe100eVth[key])+" \t "+str(stdevNumEvtGe170eVth[key])+"\n"
+    line2 = str(key)+" \t "+str(deltime_values[time_values.index(key)])+" \t "+str(avgNumEvtGe10eVee[key])+" \t "+str(avgNumEvtGe100eVee[key])+" \t "+str(avgNumEvtGe50eVee[key])+" \t "+str(stdevNumEvtGe10eVee[key])+" \t "+str(stdevNumEvtGe100eVee[key])+" \t "+str(stdevNumEvtGe50eVee[key])
+    line2 = line2 + " \t "+str(avgNumEvtGe10eVth[key])+" \t "+str(avgNumEvtGe100eVth[key])+" \t "+str(avgNumEvtGe50eVth[key])+" \t "+str(stdevNumEvtGe10eVth[key])+" \t "+str(stdevNumEvtGe100eVth[key])+" \t "+str(stdevNumEvtGe50eVth[key])
+    line2 = line2 + "\t"+ str(CountGe10eVth[key])+ "\t"+ str(CountGe100eVth[key])+ "\t"+ str(CountGe50eVth[key])+"\n"
     wf.writelines(line2)
 wf.close()
 
@@ -656,20 +669,20 @@ wf.close()
 ##    if(run%100==0):
 ##    print("number of events in Ge with normalised recoil energy > 010eV is: ", numevt10eV[run])
 ##    print("number of events in Ge with normalised recoil energy > 100eV is: ", numevt100eV[run])
-##    print("number of events in Ge with normalised recoil energy > 170eV is: ", numevt170eV[run])
+##    print("number of events in Ge with normalised recoil energy > 50eV is: ", numevt50eV[run])
 ##
 ##    print("number of events in Ge with recoil energy > 010eV is: ", numevt10eVnr[run])
 ##    print("number of events in Ge with recoil energy > 0100eV is: ", numevt100eVnr[run])
-##    print("number of events in Ge with recoil energy > 0170eV is: ", numevt170eVnr[run])
+##    print("number of events in Ge with recoil energy > 050eV is: ", numevt50eVnr[run])
 ##
 ##print("average simulated counts for 50eV threshold Sapphire: ",np.average(numevtSapphire50eV))
 ##print("average simulated counts for 100eV threshold Sapphire: ",np.average(numevtSapphire))
 ##print("average simulated counts for 10eVee threshold Ge: ",np.average(numevt10eV))
 ##print("average simulated counts for 100eVee threshold Ge: ",np.average(numevt100eV))
-##print("average simulated counts for 170eVee threshold Ge: ",np.average(numevt170eV))
+##print("average simulated counts for 50eVee threshold Ge: ",np.average(numevt50eV))
 ##print("average simulated counts for 10eVnr threshold Ge: ",np.average(numevt10eVnr))
 ##print("average simulated counts for 100eVnr threshold Ge: ",np.average(numevt100eVnr))
-##print("average simulated counts for 170eVnr threshold Ge: ",np.average(numevt170eVnr))
+##print("average simulated counts for 50eVnr threshold Ge: ",np.average(numevt50eVnr))
 ##pl.xscale('log')
 ##pl.hist(E_R1[:-1], E_R1, weights=numruns*CountGe,histtype='step', log=True,label=r'Ge_Expected',color='blue',linewidth=2)
 ##pl.hist(evtsimall,bins=E_R1,histtype='step', log=True,label=r'Ge_Simulated',color='red',linewidth=2)

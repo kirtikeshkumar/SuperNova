@@ -16,7 +16,7 @@ import os
 ###########################################################################
 ##                       Getting the time values                         ##
 ###########################################################################
-folder_path = "data/intp3003/"  
+folder_path = "data/intp2001/"  
 time_values = []
 
 # List all files in the folder
@@ -43,8 +43,8 @@ for i in range(len(time_values)):
         deltime = 0.5*(float(time_values[i+1])-float(time_values[i-1]))
     deltime_values=np.append(deltime_values,deltime)
 ############################################################################
-ll = 0
-hl = 97
+ll = 336
+hl = len(time_values)
 
 Enurangemin = 45.0
 Enurangemax = 300.0
@@ -113,7 +113,7 @@ stdevNumEvtSap100eVth = {}
 
 
 neutrino_flux_list = [lambda x: 1e-30 for i in range(6)]
-##data = np.loadtxt("data/supernova-spectrum_brightest.txt") #MeV vs No./MeV
+
 
 def HelmFormFactor(E, A):
     #Define conversion factor from amu-->keV
@@ -343,7 +343,7 @@ EH = np.vectorize(heatnorm)
 sigESapphire = lambda er: np.sqrt(0.00286518*er+0.025*0.025) #Fit from 2203.15903
 
 
-wf = open("data/intp3003_Ge/"+writefnameGe,'wt')
+wf = open("data/intp2001_Ge/"+writefnameGe,'wt')
 binsfr3d = np.linspace(0.01,50,100)
 l0 = np.array([[str(binsfr3d[i]),'\t'] for i in range(len(binsfr3d))]).reshape(2*len(binsfr3d))
 line0=''
@@ -352,9 +352,9 @@ for word in l0:
 wf.writelines(line0+'\n')
 
 for time in time_values[ll:hl]:
-   print(time," : Now Loading : data/intp3003/intp3003_"+time+".dat" )
+   print(time," : Now Loading : data/intp2001/intp2001_"+time+".dat" )
    ##data = np.loadtxt("SNn_TimeIntegrated_"+SNmass+"M"+revTime+".dat") #MeV vs No./MeV
-   data = np.loadtxt("data/intp3003/intp3003_"+time+".dat") #MeV vs No./MeV
+   data = np.loadtxt("data/intp2001/intp2001_"+time+".dat") #MeV vs No./MeV
    ########################################################################
    ##                       Normalization for Reactor                    ##
    ########################################################################
@@ -425,7 +425,7 @@ for time in time_values[ll:hl]:
    ##ER_max_Sapphire = 1000
 ##   E_R1=np.logspace(-3.0, np.log10(ER_max_Ge), 51) ## bin the recoil energies upto upper cutoff ER_max
 ##   E_R2=np.logspace(-3.0, np.log10(ER_max_Sapphire), 51)
-   E_R1=np.linspace(0.001, ER_max_Ge, 201)
+   E_R1=np.linspace(0.001, ER_max_Ge, 1001)
    E_R2=np.linspace(0.001, ER_max_Sapphire, 201)
    diffRate_CEvNS = np.vectorize(differentialRate_CEvNS)
    diffRate_full = np.vectorize(differentialRate_full)
@@ -447,10 +447,10 @@ for time in time_values[ll:hl]:
    #CountSi = np.zeros(len(E_R1)-1)
    CountAl2O3 = np.zeros(len(E_R2)-1)
    for i in range(0,len(E_R1)-1):
-       print(i)
+##       print(i)
        CountGe[i]=quad(p2,E_R1[i],E_R1[i+1],epsrel=1e-4)[0]
        #CountSi[i]=quad(p1,E_R1[i],E_R1[i+1],epsrel=1e-4)[0]
-       CountAl2O3[i]=quad(p3,E_R2[i],E_R2[i+1],epsrel=1e-4)[0]
+       #CountAl2O3[i]=quad(p3,E_R2[i],E_R2[i+1],epsrel=1e-4)[0]
    ##    CountI[i]=quad(p7,E_R1[i],E_R1[i+1],epsrel=1e-4)[0]
    ##    CountNa[i]=quad(p8,E_R1[i],E_R1[i+1],epsrel=1e-4)[0]
    ##    CountNaI[i]=CountI[i]+CountNa[i]
@@ -487,7 +487,10 @@ for time in time_values[ll:hl]:
    ######pl.savefig("COHERENT_DiffDetectors.pdf", bbox_inches="tight")
    ##pl.show()
 
-   numruns=150
+   if(sum(CountGe)>1000):
+       numruns=500
+   else:
+       numruns=1500
    numfinevts=np.zeros(numruns)
    numsimevtGe=np.zeros(numruns)
    numsimevtAl2O3=np.zeros(numruns)
@@ -510,6 +513,8 @@ for time in time_values[ll:hl]:
 
    evtnormEheatavg= np.array([])
    for run in range(numruns):
+       if(run%100==0):
+           print('Run: ',run)
        ########################################################################
        ##   Generating recoil energy events in Ge as per the distribution    ##
        ########################################################################
@@ -534,14 +539,14 @@ for time in time_values[ll:hl]:
        ########################################################################
        ##  Generating recoil energy events in Al2O3 as per the distribution  ##
        ########################################################################
-       numevtsAl2O3=np.random.poisson(sum(CountAl2O3))   ## num of events to simulate assume a poisson statistics with mean given by the expected number
-   ##    print("Run Number: ",run)
-   ##    print("Number of events simulated in Sapphire: ", numevtsAl2O3)
-       numsimevtAl2O3[run] = numevtsAl2O3
-       evtErecAl2O3_noRes = draw_from_hist(CountAl2O3, E_R2, numevtsAl2O3)
-       evtErecAl2O3 = [np.random.normal(er,sigESapphire(er)) for er in evtErecAl2O3_noRes]
-       evtsimallsap=np.append(evtsimallsap,evtErecAl2O3)
-       evtErecAl2O3=np.array(evtErecAl2O3)
+##       numevtsAl2O3=np.random.poisson(sum(CountAl2O3))   ## num of events to simulate assume a poisson statistics with mean given by the expected number
+##   ##    print("Run Number: ",run)
+##   ##    print("Number of events simulated in Sapphire: ", numevtsAl2O3)
+##       numsimevtAl2O3[run] = numevtsAl2O3
+##       evtErecAl2O3_noRes = draw_from_hist(CountAl2O3, E_R2, numevtsAl2O3)
+##       evtErecAl2O3 = [np.random.normal(er,sigESapphire(er)) for er in evtErecAl2O3_noRes]
+##       evtsimallsap=np.append(evtsimallsap,evtErecAl2O3)
+##       evtErecAl2O3=np.array(evtErecAl2O3)
        
        
    ##    evtErecAl2O3=np.zeros(numevtsAl2O3)
@@ -561,51 +566,51 @@ for time in time_values[ll:hl]:
    ##                evtsimallsap=np.append(evtsimallsap,er)
    ##                evtErecAl2O3[i]=np.random.normal(er,sigESapphire(er)) ##here we also include the resolution in E_R
    ##
-       numevtSapphire[run]=len(evtErecAl2O3[(evtErecAl2O3)>0.1])
-       numevtSapphire50eV[run]=len(evtErecAl2O3[(evtErecAl2O3)>0.05])
+##       numevtSapphire[run]=len(evtErecAl2O3[(evtErecAl2O3)>0.1])
+##       numevtSapphire50eV[run]=len(evtErecAl2O3[(evtErecAl2O3)>0.05])
    ##    print("number of events in Sapphire detector is: ", numevtSapphire[run])
        ########################################################################
        ##      Evaluating ionization and heat energies along with stdev      ##
        ########################################################################
-       evtErecGefid = np.array([])
-       evtErecGeveto = np.array([])
-       Efid = np.array([])
-       Eveto = np.array([])
+##       evtErecGefid = np.array([])
+##       evtErecGeveto = np.array([])
+##       Efid = np.array([])
+##       Eveto = np.array([])
        #total normalized thermal energy includes thermal energy due to recoil and NTL phonons
        #normalized for normEheat=Efid=Er for electron recoils
-       evtnormEheat= np.array([])
-       Eheat= np.array([])
-       evtnormEheatfid = np.array([])
-       evtnormEheatveto = np.array([])
+##       evtnormEheat= np.array([])
+##       Eheat= np.array([])
+##       evtnormEheatfid = np.array([])
+##       evtnormEheatveto = np.array([])
        for evt in evtErecGe:
-           sigERee = signormEheat(evt)
-           fn=lambda x: heatnorm(x)-sigERee
-           sigER = fsolve(fn,sigERee)
-           Eheat = np.append(Eheat,np.random.normal(evt,sigER))
-           if(np.random.rand()<0.75):
-               evtErecGefid=np.append(evtErecGefid,evt)              #events in fiducial volume
-               efid=QL(evt)*evt
-               evet=0.0
-               Efid=np.append(Efid,np.random.normal(efid,sigEfid))
-               Eveto=np.append(Eveto,np.random.normal(evet,sigEveto))
-               normEheat=np.random.normal(heatnorm(evt),signormEheat(evt))
-               evtnormEheat=np.append(evtnormEheat,normEheat)
-               evtnormEheatavg=np.append(evtnormEheatavg,normEheat)
-               evtnormEheatall=np.append(evtnormEheatall,normEheat)
-               evtnormEheatfid=np.append(evtnormEheatfid,normEheat)
+##           sigERee = signormEheat(evt)
+##           fn=lambda x: heatnorm(x)-sigERee
+##           sigER = fsolve(fn,sigERee)
+##           Eheat = np.append(Eheat,np.random.normal(evt,sigER))
+##           if(np.random.rand()<0.75):
+##               evtErecGefid=np.append(evtErecGefid,evt)              #events in fiducial volume
+##               efid=QL(evt)*evt
+##               evet=0.0
+##               Efid=np.append(Efid,np.random.normal(efid,sigEfid))
+##               Eveto=np.append(Eveto,np.random.normal(evet,sigEveto))
+            normEheat=np.random.normal(heatnorm(evt),signormEheat(evt))
+##               evtnormEheat=np.append(evtnormEheat,normEheat)
+            evtnormEheatavg=np.append(evtnormEheatavg,normEheat)
+##               evtnormEheatall=np.append(evtnormEheatall,normEheat)
+##               evtnormEheatfid=np.append(evtnormEheatfid,normEheat)
                #evtnormEheatveto=np.append(evtnormEheatveto,0.0)
                
-           else:
-               evtErecGeveto=np.append(evtErecGeveto,evt)             #events in veto volume
-               efid=QL(evt)*evt*0.5
-               evet=QL(evt)*evt
-               Efid=np.append(Efid,np.random.normal(efid,sigEfid))
-               Eveto=np.append(Eveto,np.random.normal(evet,sigEveto))
-               normEheat=np.random.normal(heatnorm(evt),signormEheat(evt))
-               evtnormEheat=np.append(evtnormEheat,normEheat)
-               evtnormEheatavg=np.append(evtnormEheatavg,normEheat)
-               evtnormEheatall=np.append(evtnormEheatall,normEheat)
-               evtnormEheatveto=np.append(evtnormEheatveto,normEheat)
+##           else:
+##               evtErecGeveto=np.append(evtErecGeveto,evt)             #events in veto volume
+##               efid=QL(evt)*evt*0.5
+##               evet=QL(evt)*evt
+##               Efid=np.append(Efid,np.random.normal(efid,sigEfid))
+##               Eveto=np.append(Eveto,np.random.normal(evet,sigEveto))
+##               normEheat=np.random.normal(heatnorm(evt),signormEheat(evt))
+##               evtnormEheat=np.append(evtnormEheat,normEheat)
+##               evtnormEheatavg=np.append(evtnormEheatavg,normEheat)
+##               evtnormEheatall=np.append(evtnormEheatall,normEheat)
+##               evtnormEheatveto=np.append(evtnormEheatveto,normEheat)
                #evtnormEheatfid=np.append(evtnormEheatfid,0.0)
 
           
@@ -615,37 +620,37 @@ for time in time_values[ll:hl]:
        
    ##    print("number of fiducial events: ", len(evtnormEheatfid))
    ##    print("number of surface events: ", len(evtnormEheatveto))
-       numevt10eV[run]=len(evtnormEheat[(evtnormEheat)>0.01])
-       numevt100eV[run]=len(evtnormEheat[(evtnormEheat)>0.1])
-       numevt170eV[run]=len(evtnormEheat[(evtnormEheat)>0.17])
-       numevt10eVnr[run]=len(Eheat[(Eheat)>0.01])
-       numevt100eVnr[run]=len(Eheat[(Eheat)>0.1])
-       numevt170eVnr[run]=len(Eheat[(Eheat)>0.17])
+##       numevt10eV[run]=len(evtnormEheat[(evtnormEheat)>0.01])
+##       numevt100eV[run]=len(evtnormEheat[(evtnormEheat)>0.1])
+##       numevt170eV[run]=len(evtnormEheat[(evtnormEheat)>0.17])
+##       numevt10eVnr[run]=len(Eheat[(Eheat)>0.01])
+##       numevt100eVnr[run]=len(Eheat[(Eheat)>0.1])
+##       numevt170eVnr[run]=len(Eheat[(Eheat)>0.17])
+##
+##   avgNumEvtGe10eVee[time] = np.average(numevt10eV)
+##   avgNumEvtGe100eVee[time] = np.average(numevt100eV)
+##   avgNumEvtGe170eVee[time] = np.average(numevt170eV)
+##
+##   avgNumEvtGe10eVth[time] = np.average(numevt10eVnr)
+##   avgNumEvtGe100eVth[time] = np.average(numevt100eVnr)
+##   avgNumEvtGe170eVth[time] = np.average(numevt170eVnr)
+##
+##   stdevNumEvtGe10eVee[time] = np.std(numevt10eV)
+##   stdevNumEvtGe100eVee[time] = np.std(numevt100eV)
+##   stdevNumEvtGe170eVee[time] = np.std(numevt170eV)
+##
+##   stdevNumEvtGe10eVth[time] = np.std(numevt10eVnr)
+##   stdevNumEvtGe100eVth[time] = np.std(numevt100eVnr)
+##   stdevNumEvtGe170eVth[time] = np.std(numevt170eVnr)
 
-   avgNumEvtGe10eVee[time] = np.average(numevt10eV)
-   avgNumEvtGe100eVee[time] = np.average(numevt100eV)
-   avgNumEvtGe170eVee[time] = np.average(numevt170eV)
-
-   avgNumEvtGe10eVth[time] = np.average(numevt10eVnr)
-   avgNumEvtGe100eVth[time] = np.average(numevt100eVnr)
-   avgNumEvtGe170eVth[time] = np.average(numevt170eVnr)
-
-   stdevNumEvtGe10eVee[time] = np.std(numevt10eV)
-   stdevNumEvtGe100eVee[time] = np.std(numevt100eV)
-   stdevNumEvtGe170eVee[time] = np.std(numevt170eV)
-
-   stdevNumEvtGe10eVth[time] = np.std(numevt10eVnr)
-   stdevNumEvtGe100eVth[time] = np.std(numevt100eVnr)
-   stdevNumEvtGe170eVth[time] = np.std(numevt170eVnr)
-
-   avgNumEvtSap50eVth[time] = np.average(numevtSapphire50eV)
-   avgNumEvtSap100eVth[time] = np.average(numevtSapphire)
-
-   stdevNumEvtSap50eVth[time] = np.std(numevtSapphire50eV)
-   stdevNumEvtSap100eVth[time] = np.std(numevtSapphire)
+##   avgNumEvtSap50eVth[time] = np.average(numevtSapphire50eV)
+##   avgNumEvtSap100eVth[time] = np.average(numevtSapphire)
+##
+##   stdevNumEvtSap50eVth[time] = np.std(numevtSapphire50eV)
+##   stdevNumEvtSap100eVth[time] = np.std(numevtSapphire)
 
    hist = pl.hist(evtnormEheatavg,bins=binsfr3d)
-   hvals = hist[0]/50.0
+   hvals = hist[0]/numruns
    lh = np.array([[str(hvals[i]),'\t'] for i in range(len(hvals))]).reshape(2*len(hvals))
    lineh=''
    for word in lh:

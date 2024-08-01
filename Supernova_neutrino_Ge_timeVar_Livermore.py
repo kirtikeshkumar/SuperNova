@@ -67,7 +67,7 @@ deltime_values = [0.02]+[0.5*(T_nu[i+1]-T_nu[i-1]) for i in range(1,len(T_nu)-1)
 ##########################################################################
 
 ll = 0                                  ## lower limit of time index
-hl = len(T_nu)                          ## upper limit of time index
+hl = 25                          ## upper limit of time index
 
 pl.rcParams['font.size']=18
 #from tqdm import tqdm
@@ -466,7 +466,7 @@ for time in T_nu[ll:hl]:
    ##sigESapphire = lambda er: 0.00078221*er*er-0.0118612*er+0.20143 #Fit from Nuclear Inst. and Methods in Physics Research, A 1046 (2023) 167634
    sigESapphire = lambda er: np.sqrt(0.00286518*er+0.025*0.025) #Fit from 2203.15903
 
-   numruns=50
+   numruns=100
    numfinevts=np.zeros(numruns)
    numsimevtGe=np.zeros(numruns)
    numsimevtAl2O3=np.zeros(numruns)

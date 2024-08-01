@@ -6,9 +6,9 @@ import os
 ########################################################################
 ##                       Make list of all files                       ##
 ########################################################################
-folder_path_Ge_Nak = "data/intp3003_Ge/Nakazato"
+folder_path_Ge_Nak = "data/intp2001_Ge/Nakazato"
 ##folder_path_Sap = "data/intp3003_Sap/Nakazato"
-folder_path_Ge_Liv = "data/intp3003_Ge/Livermore"
+folder_path_Ge_Liv = "data/intp2001_Ge/Livermore"
 ##folder_path_Sap = "data/intp3003_Sap/Livermore"
 fnamesNak    = os.listdir(folder_path_Ge_Nak)
 fnamesLiv    = os.listdir(folder_path_Ge_Liv)
