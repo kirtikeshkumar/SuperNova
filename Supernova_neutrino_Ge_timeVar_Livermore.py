@@ -394,7 +394,7 @@ for time in T_nu[ll:hl]:
    def QL(E_R,Z=Z_Ge,A=A_Ge,mod="Lin"): #Lindhard Ionization yeild
        ## Lindhard parameters
        if(mod=="Lin"):
-           k=0.133*(Z**(2.0/3.0))*(A**(0.5))
+           k=0.133*(Z**(2.0/3.0))*(A**(-0.5))
            eps=11.5*(Z**(-7.0/3.0))*E_R
        ## J. Xu fitted parameters for NaI
        if(mod=="Xu"):
@@ -416,7 +416,7 @@ for time in T_nu[ll:hl]:
 
    def dQL(E_R,Z=Z_Ge,A=A_Ge,mod="Lin"): #derivative of YL
        if(mod=="Lin"):
-           k=0.133*(Z**(2.0/3.0))*(A**(0.5))
+           k=0.133*(Z**(2.0/3.0))*(A**(-0.5))
            eps=11.5*(Z**(-7.0/3.0))*E_R
        ## J. Xu fitted parameters for NaI
        if(mod=="Xu"):

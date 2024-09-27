@@ -156,7 +156,7 @@ for fname in fnamesNak:
 ########################################################################
 ##                              Plotting                              ##
 ########################################################################
-##plt.xscale("log")
+plt.xscale("log")
 plt.yscale("log")
 plt.ylim(0.1,100)
 ##plt.errorbar(timeGeNak, meanGe10eVeeNak, yerr=stdevGe10eVeeNak, label=r'Nakazato')
