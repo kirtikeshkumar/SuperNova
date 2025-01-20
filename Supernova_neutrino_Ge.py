@@ -30,6 +30,28 @@ pl.rcParams['font.size']=18
 #Change default font size so you don't need a magnifying glass
 matplotlib.rc('font', **{'size'   : 16})
 
+pl.rcParams.update({
+    'font.weight': 'bold',
+    'axes.labelweight': 'bold',
+    'axes.linewidth': 3,  # Thicker edges for the plot
+    'axes.titlesize': 35,         # Font size for the plot title
+    'axes.labelsize': 30,         # Font size for x and y labels
+    'legend.fontsize': 24,        # Font size for legend text
+    'legend.title_fontsize': 26,  # Font size for legend title
+    'xtick.direction': 'in',  # Ticks pointing inside
+    'ytick.direction': 'in',  # Ticks pointing inside
+    'xtick.major.size': 10,      # Length of major ticks
+    'ytick.major.size': 10,      # Length of major ticks
+    'xtick.major.width': 2,      # Thickness of major ticks
+    'ytick.major.width': 2,      # Thickness of major ticks
+    'xtick.minor.size': 5,       # Length of minor ticks
+    'ytick.minor.size': 5,       # Length of minor ticks
+    'xtick.minor.width': 1,      # Thickness of minor ticks
+    'ytick.minor.width': 1,      # Thickness of minor ticks
+    'xtick.labelsize': 24,       # Font size for tick labels
+    'ytick.labelsize': 24,       # Font size for tick labels
+})
+
 
 class color:
    PURPLE = '\033[95m'
@@ -90,7 +112,7 @@ normalisation=1.0/(45.96e41) #1/(4 pi r^2) for betelgeuse
 ##neutrino_flux_list = InterpolatedUnivariateSpline(np.sqrt(data[:,0]*data[:,1]), (data[:,2]+data[:,3]+data[:,4]*4)*normalisation, k = 1) #MeV vs 1/MeV/cm^2
 neutrino_flux_list = InterpolatedUnivariateSpline(data[:,0], (data[:,1]+data[:,1]+data[:,3]*4)*normalisation, k = 1) #MeV vs 1/MeV/cm^2
 bins=np.append(data[:,0],data[-1,1])
-##flux=(data[:,2]+data[:,3]+data[:,4]*4)*normalisation
+flux=(data[:,2]+data[:,3]+data[:,4]*4)*normalisation
 Enu_min = np.min(data[:,0])
 Enu_max = np.max(data[:,0])
 
@@ -101,17 +123,22 @@ flux_tab += neutrino_flux_list(Evals)
 #neutrino_flux_nakazato = InterpolatedUnivariateSpline(Evals,flux_tab, k = 1)
 flux_tab[-1]=0.0
 
-##def neutrino_flux_hist(Enu,b=bins,f=flux):
-##    #print(Enu)
-##    diffar=b-Enu
-##    arg=np.abs(diffar).argmin()
-####    return 1e15
-##    if(diffar[arg]>=0.0):
-##        return f[arg-1]
-##    elif(diffar[arg]<0.0):
-##        return f[arg]
-##
-##neutrino_flux_nakazato=np.vectorize(neutrino_flux_hist)
+def neutrino_flux_hist(Enu,b=bins,f=flux):
+    #print(Enu)
+    diffar=b-Enu
+    arg=np.abs(diffar).argmin()
+##    return 1e15
+    if(diffar[arg]>=0.0):
+        return f[arg-1]
+    elif(diffar[arg]<0.0):
+        return f[arg]
+
+neutrino_flux_nakazato=np.vectorize(neutrino_flux_hist)
+E_nu = np.linspace(0.2,50,250)
+pl.plot(E_nu,neutrino_flux_nakazato(E_nu))
+pl.ylim(0,2e14)
+pl.xlim(0,50)
+pl.show()
 ##
 ###Plot neutrino flux
 ##pl.hist(bins[:-1], bins, weights=data[:,2],histtype='step',label=r'$\nu_e$',color='blue',linewidth=2)
@@ -123,7 +150,7 @@ flux_tab[-1]=0.0
 ##pl.legend( fontsize=14)
 ##pl.show()
 
-neutrino_flux_nakazato = np.vectorize(neutrino_flux_list)
+##neutrino_flux_nakazato = np.vectorize(neutrino_flux_list)
 
 def draw_from_hist(hist, bins, nsamples = 100000):
        cumsum = [0] + list(np.cumsum(hist))
@@ -280,7 +307,7 @@ Z_O = 8
 f_Al = 2*A_Al/(A_Al+A_O)
 f_O = 3*A_O/(A_Al+A_O)
 
-mass = 100.0 #target mass in kg
+mass = 10.0 #target mass in kg
 norm=mass
 
 ##
@@ -290,12 +317,12 @@ norm=mass
 ##
 ##ER_max_Ge = 200 ##upper cutoff in keV taken since 4 order of magnitude reduction in evt rate
 ##ER_max_Sapphire = 800
-ER_max_Ge = 1000 ##upper cutoff in keV taken since 4 order of magnitude reduction in evt rate
-ER_max_Sapphire = 2000
-##E_R1=np.logspace(-3.0, np.log10(ER_max_Ge), 501) ## bin the recoil energies upto upper cutoff ER_max
-##E_R2=np.logspace(-3.0, np.log10(ER_max_Sapphire), 501)
-E_R1=np.linspace(0.001, ER_max_Ge, 2001)
-E_R2=np.linspace(0.001, ER_max_Sapphire, 2001)
+ER_max_Ge = 300 ##upper cutoff in keV taken since 4 order of magnitude reduction in evt rate
+ER_max_Sapphire = 700
+E_R1=np.logspace(-3.0, np.log10(ER_max_Ge), 101) ## bin the recoil energies upto upper cutoff ER_max
+E_R2=np.logspace(-3.0, np.log10(ER_max_Sapphire), 101)
+##E_R1=np.linspace(0.001, ER_max_Ge, 2001)
+##E_R2=np.linspace(0.001, ER_max_Sapphire,2001)
 diffRate_CEvNS = np.vectorize(differentialRate_CEvNS)
 diffRate_full = np.vectorize(differentialRate_full)
 ##
@@ -316,7 +343,8 @@ CountGe = np.zeros(len(E_R1)-1)
 #CountSi = np.zeros(len(E_R1)-1)
 CountAl2O3 = np.zeros(len(E_R2)-1)
 for i in range(0,len(E_R1)-1):
-    print(i)
+    if(i%10==0):
+       print(i)
     CountGe[i]=quad(p2,E_R1[i],E_R1[i+1],epsrel=1e-4)[0]
     #CountSi[i]=quad(p1,E_R1[i],E_R1[i+1],epsrel=1e-4)[0]
     CountAl2O3[i]=quad(p3,E_R2[i],E_R2[i+1],epsrel=1e-4)[0]
@@ -345,14 +373,31 @@ pl.hist(E_R2[:-1], E_R2, weights=CountAl2O3,histtype='step', log=True,label=r'Sa
 ####
 ######
 ####pl.ylim(0.2, 1e6)
+pl.title("Nakazato")
 pl.yticks(fontsize=20)
 pl.xticks(fontsize=20)
-pl.xlim(0.001,1500)
-pl.ylim(1E-4,1e3)
+pl.xlim(0.001,700)
+pl.ylim(1E-2,1e1)
 pl.xlabel("Recoil Energy (keV)",fontsize=24)
 pl.ylabel("events",fontsize=24)
 pl.legend( fontsize=18)
 ####pl.savefig("COHERENT_DiffDetectors.pdf", bbox_inches="tight")
+pl.show()
+
+
+pl.plot(0.5*(E_R1[:-1]+ E_R1[1:]),CountGe/(E_R1[1:]-E_R1[:-1]), label=r'Ge',color='blue',linewidth=5)
+pl.plot(0.5*(E_R2[:-1]+ E_R2[1:]),CountAl2O3/(E_R2[1:]-E_R2[:-1]), label=r'Sapphire',color='red',linewidth=5)
+##pl.title("Livermore", fontsize=35, weight='bold')
+pl.text(250, 50, "Nakazato", fontsize=35, weight='bold', ha='center', va='center', color='black',
+        bbox=dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.5'))
+##pl.yticks(fontsize=24)
+##pl.xticks(fontsize=24)
+pl.xlim(0.001,500)
+pl.ylim(0.01,1e2)
+pl.xlabel("Recoil Energy (keV)",fontsize=30, weight='bold')
+pl.ylabel("events/keV",fontsize=30, weight='bold')
+pl.legend( fontsize=24)
+pl.yscale('log')
 pl.show()
 
 ########################################################################
@@ -360,6 +405,7 @@ pl.show()
 ########################################################################
 def QL(E_R,Z=Z_Ge,A=A_Ge,mod="Lin"): #Lindhard Ionization yeild
     ## Lindhard parameters
+    
     if(mod=="Lin"):
         k=0.133*(Z**(2.0/3.0))*(A**(-0.5))
         eps=11.5*(Z**(-7.0/3.0))*E_R
@@ -377,8 +423,19 @@ def QL(E_R,Z=Z_Ge,A=A_Ge,mod="Lin"): #Lindhard Ionization yeild
         elif(abs(Z-53.0)<0.1):
             k=0.0201308
             eps=0.00381294*E_R
-    g  =3.0*(eps**0.15)+0.7*(eps**0.6)+eps
-    return k*g/(1.0+k*g)
+   
+    if(mod!="mix"):
+       g  =3.0*(eps**0.15)+0.7*(eps**0.6)+eps
+       return k*g/(1.0+k*g)
+    elif(mod=="mix"):
+       if(E_R>=5):
+          k=0.133*(Z**(2.0/3.0))*(A**(-0.5))
+          eps=11.5*(Z**(-7.0/3.0))*E_R
+          g  =3.0*(eps**0.15)+0.7*(eps**0.6)+eps
+          return k*g/(1.0+k*g)
+       elif(E_R<5):
+          val = -0.22*E_R**3 + 3.28*E_R**2 - 14.15*E_R + 37.5
+          return val/100.0
 
 
 def dQL(E_R,Z=Z_Ge,A=A_Ge,mod="Lin"): #derivative of YL
@@ -414,8 +471,15 @@ sigEfid=0.2
 sigEveto=np.sqrt(2.0)*sigEfid
 #signormEheat=0.818/6.0
 
-def heatnorm(ER, V=69.0, Vfid=69.0): ## CDMSLite Run 
-    return ER*(1.0+QL(ER)*V/3.0)/(1.0+Vfid/3.0)
+## CDMSLite (1707.01632) measures only phonon and takes advantage of the NTL effect
+## the net phonon energy measured given ER nuclear recoil is given by heatnet.
+## heatnorm gives the energy of electron recoil which would produce same net phonon energy
+
+def heatnet(ER, V=69.0): ## CDMSLite Run 
+    return ER*(1.0+QL(ER)*V/3.0)
+
+def heatnorm(ER, V=69.0): ## CDMSLite Run 
+    return ER*(1.0+QL(ER)*V/3.0)/(1.0+V/3.0)
    
 def signormEheat(E_R, sigE = 0.0127, B = 0.0008, A = 0.00549): ## From pg 136 of https://www.slac.stanford.edu/exp/cdms/ScienceResults/Theses/germond.pdf
 ##   Run2 Values from https://arxiv.org/pdf/1707.01632.pdf
@@ -429,6 +493,7 @@ def signormEheat(E_R, sigE = 0.0127, B = 0.0008, A = 0.00549): ## From pg 136 of
 
 
 EH = np.vectorize(heatnorm)
+ET = np.vectorize(heatnet)
 
 ##sigESapphire = lambda er: 0.00078221*er*er-0.0118612*er+0.20143 #Fit from Nuclear Inst. and Methods in Physics Research, A 1046 (2023) 167634
 sigESapphire = lambda er: np.sqrt(0.00286518*er+0.025*0.025) #Fit from 2203.15903
@@ -443,6 +508,9 @@ numevt170eV=np.zeros(numruns)
 numevt10eVnr=np.zeros(numruns)
 numevt100eVnr=np.zeros(numruns)
 numevt170eVnr=np.zeros(numruns)
+numevt10eVt=np.zeros(numruns)
+numevt100eVt=np.zeros(numruns)
+numevt170eVt=np.zeros(numruns)
 numevtSapphire=np.zeros(numruns)
 numevtSapphire50eV=np.zeros(numruns)
 evtnormEheatall= np.array([])
@@ -532,7 +600,7 @@ for run in range(numruns):
         sigERee = signormEheat(evt)
         fn=lambda x: heatnorm(x)-sigERee
         sigER = fsolve(fn,sigERee)
-        Eheat = np.append(Eheat,np.random.normal(evt,sigER))
+        Eheat = abs(np.append(Eheat,np.random.normal(evt,sigER)))
         if(np.random.rand()<0.75):
             evtErecGefid=np.append(evtErecGefid,evt)              #events in fiducial volume
             efid=QL(evt)*evt
@@ -564,29 +632,40 @@ for run in range(numruns):
     
 ##    print("number of fiducial events: ", len(evtnormEheatfid))
 ##    print("number of surface events: ", len(evtnormEheatveto))
-    numevt10eV[run]=len(evtnormEheat[(evtnormEheat)>0.01])
+    numevt10eV[run]=len(evtnormEheat[(evtnormEheat)>0.03])
     numevt100eV[run]=len(evtnormEheat[(evtnormEheat)>0.1])
     numevt170eV[run]=len(evtnormEheat[(evtnormEheat)>0.05])
-    numevt10eVnr[run]=len(Eheat[(Eheat)>0.01])
+    numevt10eVnr[run]=len(Eheat[(Eheat)>0.03])
     numevt100eVnr[run]=len(Eheat[(Eheat)>0.1])
     numevt170eVnr[run]=len(Eheat[(Eheat)>0.05])
+    numevt10eVt[run]=len(Eheat[ET(Eheat)>0.03])
+    numevt100eVt[run]=len(Eheat[ET(Eheat)>0.1])
+    numevt170eVt[run]=len(Eheat[ET(Eheat)>0.05])
 ##    if(run%100==0):
-    print("number of events in Ge with normalised recoil energy > 010eV is: ", numevt10eV[run])
+    print("number of events in Ge with normalised recoil energy > 030eV is: ", numevt10eV[run])
     print("number of events in Ge with normalised recoil energy > 100eV is: ", numevt100eV[run])
     print("number of events in Ge with normalised recoil energy > 050eV is: ", numevt170eV[run])
 
-    print("number of events in Ge with recoil energy > 010eV is: ", numevt10eVnr[run])
+    print("number of events in Ge with recoil energy > 030eV is: ", numevt10eVnr[run])
     print("number of events in Ge with recoil energy > 100eV is: ", numevt100eVnr[run])
     print("number of events in Ge with recoil energy > 050eV is: ", numevt170eVnr[run])
 
+    print("number of events in Ge with total recoil energy > 030eV is: ", numevt10eVt[run])
+    print("number of events in Ge with total recoil energy > 100eV is: ", numevt100eVt[run])
+    print("number of events in Ge with total recoil energy > 050eV is: ", numevt170eVt[run])
+
 print("average simulated counts for 50eV threshold Sapphire: ",np.average(numevtSapphire50eV))
 print("average simulated counts for 100eV threshold Sapphire: ",np.average(numevtSapphire))
-print("average simulated counts for 10eVee threshold Ge: ",np.average(numevt10eV))
+print("average simulated counts for 30eVee threshold Ge: ",np.average(numevt10eV))
 print("average simulated counts for 100eVee threshold Ge: ",np.average(numevt100eV))
 print("average simulated counts for 050eVee threshold Ge: ",np.average(numevt170eV))
-print("average simulated counts for 10eVnr threshold Ge: ",np.average(numevt10eVnr))
+print("average simulated counts for 30eVnr threshold Ge: ",np.average(numevt10eVnr))
 print("average simulated counts for 100eVnr threshold Ge: ",np.average(numevt100eVnr))
 print("average simulated counts for 050eVnr threshold Ge: ",np.average(numevt170eVnr))
+print("average simulated counts for 30eVt threshold Ge: ",np.average(numevt10eVt))
+print("average simulated counts for 100eVt threshold Ge: ",np.average(numevt100eVt))
+print("average simulated counts for 050eVt threshold Ge: ",np.average(numevt170eVt))
+
 pl.xscale('log')
 pl.hist(E_R1[:-1], E_R1, weights=numruns*CountGe,histtype='step', log=True,label=r'Ge_Expected',color='blue',linewidth=2)
 pl.hist(evtsimall,bins=E_R1,histtype='step', log=True,label=r'Ge_Simulated',color='red',linewidth=2)

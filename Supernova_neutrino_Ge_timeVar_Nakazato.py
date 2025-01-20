@@ -16,7 +16,7 @@ import os
 ###########################################################################
 ##                       Getting the time values                         ##
 ###########################################################################
-folder_path = "data/intp2001/"  
+folder_path = "data/intp2003/"  
 time_values = []
 
 # List all files in the folder
@@ -43,8 +43,8 @@ for i in range(len(time_values)):
         deltime = 0.5*(float(time_values[i+1])-float(time_values[i-1]))
     deltime_values=np.append(deltime_values,deltime)
 ############################################################################
-ll = 75
-hl = 76
+ll = 367
+hl = 391
 
 pl.rcParams['font.size']=18
 #from tqdm import tqdm
@@ -97,6 +97,10 @@ avgNumEvtGe10eVth = {}
 avgNumEvtGe100eVth = {}
 avgNumEvtGe50eVth = {}
 
+avgNumEvtGe10eVt = {}
+avgNumEvtGe100eVt = {}
+avgNumEvtGe50eVt = {}
+
 stdevNumEvtGe10eVee = {}
 stdevNumEvtGe100eVee = {}
 stdevNumEvtGe50eVee = {}
@@ -104,6 +108,10 @@ stdevNumEvtGe50eVee = {}
 stdevNumEvtGe10eVth = {}
 stdevNumEvtGe100eVth = {}
 stdevNumEvtGe50eVth = {}
+
+stdevNumEvtGe10eVt = {}
+stdevNumEvtGe100eVt = {}
+stdevNumEvtGe50eVt = {}
 
 avgNumEvtSap50eVth = {}
 avgNumEvtSap100eVth = {}
@@ -270,9 +278,9 @@ f_O = 3*A_O/(A_Al+A_O)
 
 
 for time in time_values[ll:hl]:
-   print(time," : Now Loading : data/intp2001/intp2001_"+time+".dat" )
+   print(time," : Now Loading : data/intp2003/intp2003_"+time+".dat" )
    ##data = np.loadtxt("SNn_TimeIntegrated_"+SNmass+"M"+revTime+".dat") #MeV vs No./MeV
-   data = np.loadtxt("data/intp2001/intp2001_"+time+".dat") #MeV vs No./MeV
+   data = np.loadtxt("data/intp2003/intp2003_"+time+".dat") #MeV vs No./MeV
    ########################################################################
    ##                       Normalization for Reactor                    ##
    ########################################################################
@@ -411,27 +419,39 @@ for time in time_values[ll:hl]:
    ########################################################################
    ##             Define Ionization yeild and its derivative             ##
    ########################################################################
-   def QL(E_R,Z=Z_Ge,A=A_Ge,mod="Lin"): #Lindhard Ionization yeild
-       ## Lindhard parameters
-       if(mod=="Lin"):
-           k=0.133*(Z**(2.0/3.0))*(A**(-0.5))
-           eps=11.5*(Z**(-7.0/3.0))*E_R
-       ## J. Xu fitted parameters for NaI
-       if(mod=="Xu"):
-           k=0.0748267                   # y err only
-           eps=0.00887421*E_R            # y err only
-   ##      k=0.0748217                 # xy err
-   ##      eps=0.00887428*E_R          # xy err
-       ## H. W. Joo fitted parameters for yerr for NaI
-       if(mod=="Joo"):
-           if (abs(Z-11.0)<0.1):
-               k=0.0446369
-               eps=0.0201453*E_R
-           elif(abs(Z-53.0)<0.1):
-               k=0.0201308
-               eps=0.00381294*E_R
+   def QL(E_R,Z=Z_Ge,A=A_Ge,mod="mix"): #Lindhard Ionization yeild
+    ## Lindhard parameters
+    
+    if(mod=="Lin"):
+        k=0.133*(Z**(2.0/3.0))*(A**(-0.5))
+        eps=11.5*(Z**(-7.0/3.0))*E_R
+    ## J. Xu fitted parameters for NaI
+    if(mod=="Xu"):
+        k=0.0748267                   # y err only
+        eps=0.00887421*E_R            # y err only
+##      k=0.0748217                 # xy err
+##      eps=0.00887428*E_R          # xy err
+    ## H. W. Joo fitted parameters for yerr for NaI
+    if(mod=="Joo"):
+        if (abs(Z-11.0)<0.1):
+            k=0.0446369
+            eps=0.0201453*E_R
+        elif(abs(Z-53.0)<0.1):
+            k=0.0201308
+            eps=0.00381294*E_R
+   
+    if(mod!="mix"):
        g  =3.0*(eps**0.15)+0.7*(eps**0.6)+eps
        return k*g/(1.0+k*g)
+    elif(mod=="mix"):
+       if(E_R>=5):
+          k=0.133*(Z**(2.0/3.0))*(A**(-0.5))
+          eps=11.5*(Z**(-7.0/3.0))*E_R
+          g  =3.0*(eps**0.15)+0.7*(eps**0.6)+eps
+          return k*g/(1.0+k*g)
+       elif(E_R<5):
+          val = -0.22*E_R**3 + 3.28*E_R**2 - 14.15*E_R + 37.5
+          return val/100.0
 
 
    def dQL(E_R,Z=Z_Ge,A=A_Ge,mod="Lin"): #derivative of YL
@@ -467,26 +487,33 @@ for time in time_values[ll:hl]:
    sigEveto=np.sqrt(2.0)*sigEfid
    #signormEheat=0.818/6.0
 
-   def heatnorm(ER, V=69.0, Vfid=69.0): ## CDMSLite Run 
-       return ER*(1.0+QL(ER)*V/3.0)/(1.0+Vfid/3.0)
-      
+   def heatnet(ER, V=69.0): ## CDMSLite Run 
+       return ER*(1.0+QL(ER)*V/3.0)
+
+   def heatnorm(ER, V=69.0): ## CDMSLite Run
+       return ER*(1.0+QL(ER)*V/3.0)/(1.0+V/3.0)
+       
    def signormEheat(E_R, sigE = 0.0127, B = 0.0008, A = 0.00549): ## From pg 136 of https://www.slac.stanford.edu/exp/cdms/ScienceResults/Theses/germond.pdf
-   ##   Run2 Values from https://arxiv.org/pdf/1707.01632.pdf
-      sigE = 0.00926
-      B = 0.00064
-      A = 5.68E-3
-      E_Ree = heatnorm(E_R)
-      #return 0.12
-      return np.sqrt(sigE**2+B*E_Ree+(A*E_Ree)**2)
+    ##   Run2 Values from https://arxiv.org/pdf/1707.01632.pdf
+       sigE = 0.00926
+       B = 0.00064
+       A = 5.68E-3
+       E_Ree = heatnorm(E_R)
+       #return 0.12
+       return np.sqrt(sigE**2+B*E_Ree+(A*E_Ree)**2)
 
 
 
    EH = np.vectorize(heatnorm)
+   ET = np.vectorize(heatnet)
+
 
    ##sigESapphire = lambda er: 0.00078221*er*er-0.0118612*er+0.20143 #Fit from Nuclear Inst. and Methods in Physics Research, A 1046 (2023) 167634
    sigESapphire = lambda er: np.sqrt(0.00286518*er+0.025*0.025) #Fit from 2203.15903
 
    numruns=300
+   if(float(time)>2.0):
+       numruns = 1500
    numfinevts=np.zeros(numruns)
    numsimevtGe=np.zeros(numruns)
    numsimevtAl2O3=np.zeros(numruns)
@@ -496,6 +523,9 @@ for time in time_values[ll:hl]:
    numevt10eVnr=np.zeros(numruns)
    numevt100eVnr=np.zeros(numruns)
    numevt50eVnr=np.zeros(numruns)
+   numevt10eVt=np.zeros(numruns)
+   numevt100eVt=np.zeros(numruns)
+   numevt50eVt=np.zeros(numruns)
    numevtSapphire=np.zeros(numruns)
    numevtSapphire50eV=np.zeros(numruns)
    evtnormEheatall= np.array([])
@@ -579,7 +609,7 @@ for time in time_values[ll:hl]:
            sigERee = signormEheat(evt)
            fn=lambda x: heatnorm(x)-sigERee
            sigER = fsolve(fn,sigERee)
-           Eheat = np.append(Eheat,np.random.normal(evt,sigER))
+           Eheat = abs(np.append(Eheat,np.random.normal(evt,sigER)))
            if(np.random.rand()<0.75):
                evtErecGefid=np.append(evtErecGefid,evt)              #events in fiducial volume
                efid=QL(evt)*evt
@@ -613,10 +643,13 @@ for time in time_values[ll:hl]:
    ##    print("number of surface events: ", len(evtnormEheatveto))
        numevt10eV[run]=len(evtnormEheat[(evtnormEheat)>0.01])
        numevt100eV[run]=len(evtnormEheat[(evtnormEheat)>0.1])
-       numevt50eV[run]=len(evtnormEheat[(evtnormEheat)>0.17])
+       numevt50eV[run]=len(evtnormEheat[(evtnormEheat)>0.05])
        numevt10eVnr[run]=len(Eheat[(Eheat)>0.01])
        numevt100eVnr[run]=len(Eheat[(Eheat)>0.1])
-       numevt50eVnr[run]=len(Eheat[(Eheat)>0.17])
+       numevt50eVnr[run]=len(Eheat[(Eheat)>0.05])
+       numevt10eVt[run]=len(Eheat[ET(Eheat)>0.01])
+       numevt100eVt[run]=len(Eheat[ET(Eheat)>0.1])
+       numevt50eVt[run]=len(Eheat[ET(Eheat)>0.05])
 
    avgNumEvtGe10eVee[time] = np.average(numevt10eV)
    avgNumEvtGe100eVee[time] = np.average(numevt100eV)
@@ -626,6 +659,10 @@ for time in time_values[ll:hl]:
    avgNumEvtGe100eVth[time] = np.average(numevt100eVnr)
    avgNumEvtGe50eVth[time] = np.average(numevt50eVnr)
 
+   avgNumEvtGe10eVt[time] = np.average(numevt10eVt)
+   avgNumEvtGe100eVt[time] = np.average(numevt100eVt)
+   avgNumEvtGe50eVt[time] = np.average(numevt50eVt)
+
    stdevNumEvtGe10eVee[time] = np.std(numevt10eV)
    stdevNumEvtGe100eVee[time] = np.std(numevt100eV)
    stdevNumEvtGe50eVee[time] = np.std(numevt50eV)
@@ -634,28 +671,33 @@ for time in time_values[ll:hl]:
    stdevNumEvtGe100eVth[time] = np.std(numevt100eVnr)
    stdevNumEvtGe50eVth[time] = np.std(numevt50eVnr)
 
+   stdevNumEvtGe10eVt[time] = np.std(numevt10eVt)
+   stdevNumEvtGe100eVt[time] = np.std(numevt100eVt)
+   stdevNumEvtGe50eVt[time] = np.std(numevt50eVt)
+
    avgNumEvtSap50eVth[time] = np.average(numevtSapphire50eV)
    avgNumEvtSap100eVth[time] = np.average(numevtSapphire)
 
    stdevNumEvtSap50eVth[time] = np.std(numevtSapphire50eV)
    stdevNumEvtSap100eVth[time] = np.std(numevtSapphire)
 
-writefnameGe = "SNn_Counts_Ge"+time_values[ll]+"s-"+time_values[hl-1]+"s.dat"
-wf = open("data/intp2001_Ge/"+writefnameGe,'wt')
-line0 = "time \t delTime \t\t mean eVee \t \t stdev eVee \t \t mean eVth \t \t stdev eVth \t \t CountGe \n"
-line1 = " \t  \t 10 \t 100 \t 50 \t 10 \t 100 \t 50 \t 10 \t 100 \t 50 \t 10 \t 100 \t 50 \t 10 \t 100 \t 50 \n"
+writefnameGe = "SNn_Counts_Ge_MixQF_"+time_values[ll]+"s-"+time_values[hl-1]+"s.dat"
+wf = open("data/intp2003_Ge/"+writefnameGe,'wt')
+line0 = "time \t delTime \t\t mean eVee \t \t stdev eVee \t \t mean eVth \t \t stdev eVth \t \t mean eVt \t \t stdev eVt \t \t CountGe \n"
+line1 = " \t  \t 10 \t 100 \t 50 \t 10 \t 100 \t 50 \t 10 \t 100 \t 50 \t 10 \t 100 \t 50 \t 10 \t 100 \t 50 \t 10 \t 100 \t 50 \t 10 \t 100 \t 50 \n"
 wf.writelines(line0)
 wf.writelines(line1)
 
 for key in avgNumEvtGe10eVee.keys():
     line2 = str(key)+" \t "+str(deltime_values[time_values.index(key)])+" \t "+str(avgNumEvtGe10eVee[key])+" \t "+str(avgNumEvtGe100eVee[key])+" \t "+str(avgNumEvtGe50eVee[key])+" \t "+str(stdevNumEvtGe10eVee[key])+" \t "+str(stdevNumEvtGe100eVee[key])+" \t "+str(stdevNumEvtGe50eVee[key])
     line2 = line2 + " \t "+str(avgNumEvtGe10eVth[key])+" \t "+str(avgNumEvtGe100eVth[key])+" \t "+str(avgNumEvtGe50eVth[key])+" \t "+str(stdevNumEvtGe10eVth[key])+" \t "+str(stdevNumEvtGe100eVth[key])+" \t "+str(stdevNumEvtGe50eVth[key])
+    line2 = line2 + " \t "+str(avgNumEvtGe10eVt[key])+" \t "+str(avgNumEvtGe100eVt[key])+" \t "+str(avgNumEvtGe50eVt[key])+" \t "+str(stdevNumEvtGe10eVt[key])+" \t "+str(stdevNumEvtGe100eVt[key])+" \t "+str(stdevNumEvtGe50eVt[key])
     line2 = line2 + "\t"+ str(CountGe10eVth[key])+ "\t"+ str(CountGe100eVth[key])+ "\t"+ str(CountGe50eVth[key])+"\n"
     wf.writelines(line2)
 wf.close()
 
-writefnameSap = "SNn_Counts_Sap"+time_values[ll]+"s-"+time_values[hl-1]+"s.dat"
-wf = open("data/intp2001_Sap/"+writefnameSap,'wt')
+writefnameSap = "SNn_Counts_Sap_MixQF_"+time_values[ll]+"s-"+time_values[hl-1]+"s.dat"
+wf = open("data/intp2003_Sap/"+writefnameSap,'wt')
 line0 = "time  \t \t mean eVth \t \t stdev eVth \n"
 line1 = " \t 50 \t 100 \t 50 \t 100 \n"
 wf.writelines(line0)

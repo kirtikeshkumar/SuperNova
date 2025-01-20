@@ -1,0 +1,4 @@
+Total CEvNS events expected (E_NR cutoff) Ge:  441.4049780927263
+Total CEvNS events expected (E_NR cutoff) Si:  116.12258554696749
+Total CEvNS events expected (E_ion cutoff) Ge:  144.61484085748936 #not correct due to incorrect application of Q and integration
+Total CEvNS events expected (E_ion cutoff) Si:  95.88934342447364

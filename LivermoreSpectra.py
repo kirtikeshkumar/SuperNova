@@ -66,23 +66,26 @@ plt.show()
 intFlux_nue = []
 intFlux_anue = []
 intFlux_nux = []
+intFlux = []
+
+normalisation=1.0/(45.96e41)
 
 for E in E_nu:
     f_intFlux_nue = lambda t:diffflux(E,t,fnue_E,fnue_L)
     f_intFlux_anue = lambda t:diffflux(E,t,fanue_E,fanue_L)
     f_intFlux_nux = lambda t:diffflux(E,t,fnux_E,fnux_L)
 
-    intFlux_nue.append(quad(f_intFlux_nue,T_nu[0],T_nu[-1],epsrel=1e-4)[0])
-    intFlux_anue.append(quad(f_intFlux_anue,T_nu[0],T_nu[-1],epsrel=1e-4)[0])
-    intFlux_nux.append(quad(f_intFlux_nux,T_nu[0],T_nu[-1],epsrel=1e-4)[0])
+    intFlux_nue.append(quad(f_intFlux_nue,T_nu[0],T_nu[-1],epsrel=1e-4)[0]*normalisation)
+    intFlux_anue.append(quad(f_intFlux_anue,T_nu[0],T_nu[-1],epsrel=1e-4)[0]*normalisation)
+    intFlux_nux.append(quad(f_intFlux_nux,T_nu[0],T_nu[-1],epsrel=1e-4)[0]*normalisation)
 
-normalisation = 1.0
+##normalisation = 1.0
 data = np.loadtxt("data/supernova-spectrum_M_20_Z_2_rev_100.txt") #MeV vs No./MeV
 bins=np.append(data[:,0],data[-1,1])
-neutrino_flux_list = InterpolatedUnivariateSpline(np.sqrt(data[:,0]*data[:,1]), (data[:,2]+data[:,3]+data[:,4]*4)*normalisation, k = 1) #MeV vs 1/MeV/m^2
-pNe = plt.hist(bins[:-1], bins, weights=data[:,2],histtype='step',ls='--',label=r'$\nu_e$',color='blue',linewidth=2)
-pNbe = plt.hist(bins[:-1], bins, weights=data[:,3],histtype='step',ls='--',label=r'$\bar{\nu}_e$',color='green',linewidth=2)
-pNx = plt.hist(bins[:-1], bins, weights=data[:,4],histtype='step',ls='--',label=r'$\nu_x$',color='red',linewidth=2)
+##neutrino_flux_list = InterpolatedUnivariateSpline(np.sqrt(data[:,0]*data[:,1]), (data[:,2]+data[:,3]+data[:,4]*4)*normalisation, k = 1) #MeV vs 1/MeV/m^2
+pNe = plt.hist(bins[:-1], bins, weights=data[:,2]*normalisation,histtype='step',ls='--',label=r'$\nu_e$',color='blue',linewidth=2)
+pNbe = plt.hist(bins[:-1], bins, weights=data[:,3]*normalisation,histtype='step',ls='--',label=r'$\bar{\nu}_e$',color='green',linewidth=2)
+pNx = plt.hist(bins[:-1], bins, weights=data[:,4]*normalisation,histtype='step',ls='--',label=r'$\nu_x$',color='red',linewidth=2)
 pLe, = plt.plot(E_nu,intFlux_nue,label=r'$\nu_e$',color='blue',linewidth=2)
 pLbe, = plt.plot(E_nu,intFlux_anue,label=r'$\bar{\nu}_e$',color='green',linewidth=2)
 pLx, = plt.plot(E_nu,intFlux_nux,label=r'$\nu_x$',color='red',linewidth=2)
@@ -96,5 +99,13 @@ plt.ylabel("total no. of neutrino [MeV$^{-1}$]", fontsize=14)
 ## borderaxespad=0., title=['Nakazato Livermore'], framealpha=.75,
 ## facecolor='w', edgecolor='k', loc=2, fancybox=None)
 plt.show()
+
+
+for i in range(len(intFlux_nue)):
+    intFlux.append(intFlux_nue[i]+intFlux_anue[i]+intFlux_nux[i]*4.0)
+plt.hist(bins[:-1], bins, weights=(data[:,2]+data[:,3]+data[:,4]*4)*normalisation,histtype='step',ls='--',label=r'Nakazato',color='blue',linewidth=2)
+plt.plot(E_nu,intFlux,label=r'Livermore',color='Orange',linewidth=2)
+plt.show()
+
 
 

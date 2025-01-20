@@ -1,0 +1,108 @@
+%\documentclass[twocolumn,amsmath,amssymb]{report}
+\documentclass[twocolumn,amsmath,amssymb]{snp}
+\pagestyle{empty}
+\usepackage{graphicx}% Include figure files
+\usepackage{dcolumn}% Align table columns on decimal point
+\usepackage{bm}% bold math
+\topmargin 1.5 cm
+\textwidth14.5cm
+\textheight20cm
+\oddsidemargin0.7cm
+\columnsep0.2in
+
+\begin{document}
+
+\title{{Supernova Neutrino Measurement using Cryogenic Detectors}}% Force line breaks with \\
+
+\author{\large Kirtikesh Kumar$^1$}
+\email{kirtikesh@barc.gov.in}
+\author{\large Vishwajeet Jha$^{1,2}$}
+\email{vjha@barc.gov.in}
+% \altaffiliation[Also at ]{Physics Department, XYZ University.}%Lines break automatically or can be forced with \\
+\affiliation{$^1$Nuclear Physics Division, Bhabha Atomic Research Centre, Mumbai - 400085, INDIA}
+\affiliation{$^2$Homi Bhabha National Institute, Anushaktinagar, Mumbai - 400094, INDIA}
+\maketitle
+
+
+\section*{Introduction}
+Core Collapse SuperNova (CCSN) are the terminal point in the evolution of massive stars($M > 8 M_\odot$) and are widely considered to be the site of nucleosynthesis of nuclei heavier than Iron. These are the most powerful cosmic sources of MeV neutrinos. The neutrinos play an important role in the final moments of the dying star and are responsible for powering the explosion, gradual neutronization of the stellar plasma, thereby making neutrons the dominant component of neutron star matter. These neutrinos are also responsible for carrying away the gravitational binding energy of the resulting proto-neutron star and contribute to its cooling. Hence a study of supernova neutrinos can provide important information on the process of stellar evolution, nucleosynthesis as well as the QGP phase transition. It can also serve as an early warning system for observing supernova explosions in multi-messenger astronomy (SNEWS).
+
+As of date, neutrinos from CCSN have only been detected from SN1987A. Three detectors observed a total of 24 neutrinos in this explosion. With the improvement in detector technologies since then and the demonstration of neutrino detection via Coherent Elastic Neutrino Nucleus Scattering (CE$\nu$NS) we expect to observe many more neutrinos from supernova explosions in the galactic neighbourhood. This manuscript estimates the number of supernova neutrino events in Si, Ge and PbWO$_4$ cryogenic detectors, considering CE$\nu$NS scattering of neutrino with respective nuclei.
+
+\section*{CE$\nu$NS cross section}
+CE$\nu$NS is a neutral current process in which neutrino of any flavour scatters off a nucleus causing the nucleus to recoil. The cross section for this interaction is given by:
+\begin{multline}
+    \frac{d\sigma}{dE_{nr}}=\frac{G_F^2}{8\pi}Q_W^2M|F(q)|^2\times \\ \left[2-\frac{2E_{nr}}{E_\nu}+\left(\frac{E_{nr}}{E_\nu}\right)^2-\frac{ME_{nr}}{E_\nu^2}\right]
+    \label{eq:diffcs}
+\end{multline}
+where $G_F$ is the Fermi coupling constant, $E_\nu$ \& $E_{nr}$ the neutrino energy and nuclear recoil energy respectively, M the mass of the target nucleus, $F(q)$ its form factor and $Q_W=N-(1-4sin^2\theta_W)Z$ is the weak nuclear charge (N is neutron number, Z the atomic number and $\theta_W$ the weak mixing angle). This cross section varies as $N^2$ of a nucleus (figure \ref{fig:diffcs}) and is $\sim700$ times more than the IBD cross section for same $E_\nu$. 
+\begin{figure}[htbp]
+    \vspace{-2mm}
+    \centering
+    \includegraphics[width=\linewidth,height=4cm]{COHERENT_DiffDetectors.pdf}
+    \caption{Differential cross section of CE$\nu$NS for different nuclei}
+    \label{fig:diffcs}
+    \vspace{-2mm}
+\end{figure}
+
+\section*{Supernova Neutrinos}
+The time evolution of supernova neutrino luminosity is shown in Figure \ref{fig:tprof}, with the entire emission lasting about 20 seconds, divided into three phases \cite{foguel,janka}. Starting from the bounce of the core at $t=0$, the peak of electron neutrinos marks the neutronization burst, and occurs just after the bounce. The burst is caused by electron capture on nucleons freed by the propagation of bouncing shock wave through the core. The burst is followed by an accretion phase. This sees the thermal production of neutrinos of all flavours along with production of $\nu_e$ \& $\bar{\nu_e}$ by charged current interactions. The accretion phase eventually stops, and the resulting proto-neutron star enters a cooling phase, emitting its gravitational binding energy through thermally produced neutrinos of all flavours.
+\begin{figure}[htbp]
+    %\vspace{-2mm}
+    \centering
+    %\includegraphics[width=70mm,height=35mm]{}
+    \includegraphics[width=\linewidth,height=4cm]{Screenshot from 2023-09-13 10-43-55.pdf}
+    \caption{Time profile of neutrino luminosity for a star with $M=20M_\odot$, $Z=0.02$ and $t_{rev}=200ms$. x-axis corresponds to time after bounce.}
+    \label{fig:tprof}
+     \vspace{-2mm}
+\end{figure}
+The time integrated neutrino spectra from supernova explosion is taken from \cite{nakazato} and is shown in figure \ref{fig:nuspec}
+
+\section*{Event Rate}
+The differential event rate as a function of the recoil energy is evaluated as follows:
+\begin{multline}
+    \frac{dR}{dE_{nr}}=\frac{M_{det}}{M_{nuc}(4\pi d^2)}\times\\\sum_{i=\nu_e,\bar{\nu}_e,\nu_x}\int_{E_{min}}^\infty\frac{d\sigma}{dE_{nr}}f_i(E_\nu)dE_\nu
+\end{multline}
+
+where $M_{det}$ is the mass of detector, $M_{nuc}$ is the average mass of target nuclei, $d$ is the distance to supernova explosion, $E_{min}$ is the minimum energy a supernova neutrino must have to produce a nuclear recoil of $E_{nr}$ and $f_i(E_\nu)$ is the differential spectra of i$^{th}$ neutrino flavour. 
+\begin{figure}[h]
+    \vspace{-2mm}
+    \centering
+    \includegraphics[width=\linewidth,height=4cm,]{SupernovaNeutrinoFlux.png}
+    \caption{Supernova neutrino spectra integrated till 18s for all neutrino flavours }
+    \label{fig:nuspec}
+    \vspace{-2mm}
+\end{figure}
+Due to the weakness of the interaction and the masses involved, the nuclear recoil energies are in keV range and require very sensitive and low-noise detectors. Most such detectors currently in use have a threshold $\sim 100$ eV with future detectors being planned to reach as low as 10eV. Hence, we calculate the total counts from a supernova explosion considering these thresholds. The results are presented in table \ref{tab:counts} for the red-giant Betelgeuse located 196pc from earth, and expected to be the next star in milkyway to undergo supernova explosion. Figure \ref{fig:countcontour} shows a contour plot of expected counts for 100eV threshold on $E_{nr}$ for different detector masses and source distances.
+
+\begin{figure}[b]
+\vspace{-1mm}
+    \centering
+    \includegraphics[width=\textwidth]{countContour.pdf}
+    \caption{Contour plot of counts for different detector masses(y-axis) and supernova distance(x-axis) in 3 detector materials}
+    \label{fig:countcontour}
+\end{figure}
+
+\begin{table}[h]
+\vspace{-3mm}
+\caption{\label{tab:counts} Estimated counts in different detectors for $M_{det}=10$kg and thresholds $(E_{nr})_{th}$}   
+\begin{tabular}{|c|c|c|}
+\hline 
+Detector &$(E_{nr})_{th}=10eV$ & $(E_{nr})_{th}=100eV$\\ \hline
+Si      & 50  & 49  \\
+Ge      & 212 & 183 \\
+PbWO$_4$& 611 & 557 \\
+\hline
+\end{tabular}
+\vspace{-4mm}
+\end{table}
+
+\begin{thebibliography}{50}
+\bibitem{foguel} A.L. Foguel et al., Astropart. Phys. 127 (2021) 102534
+\bibitem{janka} H.T. Janka, 2017, doi:10.1007/978-3-319-21846-5\_4
+\bibitem{nakazato} K. Nakazato et al., Astrophys. J. Suppl. Ser. 205 (1) (2013) 2
+\end{thebibliography}
+
+\end{document}
+%
+% ****** End of file snpcontrisamp.tex ******

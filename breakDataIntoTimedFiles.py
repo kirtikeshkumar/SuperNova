@@ -9,7 +9,7 @@ nux = []
 lnue = []
 lanue = []
 lnux = []
-fname="intp2001"
+fname="intp2003"
 
 with open("data/"+fname+".data", 'r') as file:
     for i,v in enumerate(file.readlines()):

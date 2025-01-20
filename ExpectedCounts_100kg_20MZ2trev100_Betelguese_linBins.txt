@@ -1,0 +1,11 @@
+average simulated counts for 50eV threshold Sapphire:  418.012
+average simulated counts for 100eV threshold Sapphire:  414.648
+average simulated counts for 10eVee threshold Ge:  684.518
+average simulated counts for 100eVee threshold Ge:  542.022
+average simulated counts for 050eVee threshold Ge:  616.238
+average simulated counts for 10eVnr threshold Ge:  696.7
+average simulated counts for 100eVnr threshold Ge:  673.324
+average simulated counts for 050eVnr threshold Ge:  687.786
+average simulated counts for 10eVt threshold Ge:  697.846
+average simulated counts for 100eVt threshold Ge:  692.898
+average simulated counts for 050eVt threshold Ge:  695.716

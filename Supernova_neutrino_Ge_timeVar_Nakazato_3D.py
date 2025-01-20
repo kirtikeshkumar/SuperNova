@@ -50,7 +50,9 @@ Enurangemin = 45.0
 Enurangemax = 300.0
 
 writefnameGe = "SNn_Counts_Ge"+time_values[ll]+"s-"+time_values[hl-1]+"s_ERange_"+str(int(Enurangemin))+"-"+str(int(Enurangemax))+".dat"
+writefnameSap = "SNn_Counts_Sap"+time_values[ll]+"s-"+time_values[hl-1]+"s_ERange_"+str(int(Enurangemin))+"-"+str(int(Enurangemax))+".dat"
 print(writefnameGe)
+print(writefnameSap)
 pl.rcParams['font.size']=18
 #from tqdm import tqdm
 
@@ -288,9 +290,19 @@ def QL(E_R,Z=Z_Ge,A=A_Ge,mod="Lin"): #Lindhard Ionization yeild
        elif(abs(Z-53.0)<0.1):
            k=0.0201308
            eps=0.00381294*E_R
-   g  =3.0*(eps**0.15)+0.7*(eps**0.6)+eps
-   return k*g/(1.0+k*g)
-
+           
+   if(mod!="mix"):
+       g  =3.0*(eps**0.15)+0.7*(eps**0.6)+eps
+       return k*g/(1.0+k*g)
+   elif(mod=="mix"):
+       if(E_R>=5):
+          k=0.133*(Z**(2.0/3.0))*(A**(-0.5))
+          eps=11.5*(Z**(-7.0/3.0))*E_R
+          g  =3.0*(eps**0.15)+0.7*(eps**0.6)+eps
+          return k*g/(1.0+k*g)
+       elif(E_R<5):
+          val = -0.22*E_R**3 + 3.28*E_R**2 - 14.15*E_R + 37.5
+          return val/100.0
 
 def dQL(E_R,Z=Z_Ge,A=A_Ge,mod="Lin"): #derivative of YL
    if(mod=="Lin"):
@@ -325,6 +337,13 @@ sigEfid=0.2
 sigEveto=np.sqrt(2.0)*sigEfid
 #signormEheat=0.818/6.0
 
+## CDMSLite (1707.01632) measures only phonon and takes advantage of the NTL effect
+## the net phonon energy measured given ER nuclear recoil is given by heatnet.
+## heatnorm gives the energy of electron recoil which would produce same net phonon energy
+
+def heatnet(ER, V=69.0): ## CDMSLite Run 
+    return ER*(1.0+QL(ER)*V/3.0)
+
 def heatnorm(ER, V=69.0, Vfid=69.0): ## CDMSLite Run 
    return ER*(1.0+QL(ER)*V/3.0)/(1.0+Vfid/3.0)
   
@@ -344,12 +363,20 @@ sigESapphire = lambda er: np.sqrt(0.00286518*er+0.025*0.025) #Fit from 2203.1590
 
 
 wf = open("data/intp2001_Ge/"+writefnameGe,'wt')
+wfsap = open("data/intp2001_Sap/Nakazato3D/"+writefnameSap,'wt')
 binsfr3d = np.linspace(0.01,50,100)
 l0 = np.array([[str(binsfr3d[i]),'\t'] for i in range(len(binsfr3d))]).reshape(2*len(binsfr3d))
 line0=''
 for word in l0:
    line0=line0+word
 wf.writelines(line0+'\n')
+wfsap.writelines(line0+'\n')
+
+ER_max_Ge = 1000 ##upper cutoff in keV taken since 4 order of magnitude reduction in evt rate
+ER_max_Sapphire = 2000
+
+E_R1 = np.append(np.linspace(0.001,5,500),np.linspace(5.1,ER_max_Ge,501))
+E_R2 = np.append(np.linspace(0.001,10,100),np.linspace(5.1,ER_max_Sapphire,901))
 
 for time in time_values[ll:hl]:
    print(time," : Now Loading : data/intp2001/intp2001_"+time+".dat" )
@@ -419,14 +446,14 @@ for time in time_values[ll:hl]:
    ##
    ##print(1)
    ##
-   ER_max_Ge = 1000 ##upper cutoff in keV taken since 4 order of magnitude reduction in evt rate
-   ER_max_Sapphire = 2000
+##   ER_max_Ge = 1000 ##upper cutoff in keV taken since 4 order of magnitude reduction in evt rate
+##   ER_max_Sapphire = 2000
    ##ER_max_Ge = 1000 ##upper cutoff in keV taken since 4 order of magnitude reduction in evt rate
    ##ER_max_Sapphire = 1000
-##   E_R1=np.logspace(-3.0, np.log10(ER_max_Ge), 51) ## bin the recoil energies upto upper cutoff ER_max
-##   E_R2=np.logspace(-3.0, np.log10(ER_max_Sapphire), 51)
-   E_R1=np.linspace(0.001, ER_max_Ge, 1001)
-   E_R2=np.linspace(0.001, ER_max_Sapphire, 201)
+##   E_R1=np.logspace(-3.0, np.log10(ER_max_Ge), 501) ## bin the recoil energies upto upper cutoff ER_max
+##   E_R2=np.logspace(-3.0, np.log10(ER_max_Sapphire), 501)
+##   E_R1=np.linspace(0.001, ER_max_Ge, 1001)
+##   E_R2=np.linspace(0.001, ER_max_Sapphire, 1001)
    diffRate_CEvNS = np.vectorize(differentialRate_CEvNS)
    diffRate_full = np.vectorize(differentialRate_full)
    ##
@@ -447,10 +474,10 @@ for time in time_values[ll:hl]:
    #CountSi = np.zeros(len(E_R1)-1)
    CountAl2O3 = np.zeros(len(E_R2)-1)
    for i in range(0,len(E_R1)-1):
-##       print(i)
+       if(i%100==0):print("RecEval: ",i)
        CountGe[i]=quad(p2,E_R1[i],E_R1[i+1],epsrel=1e-4)[0]
        #CountSi[i]=quad(p1,E_R1[i],E_R1[i+1],epsrel=1e-4)[0]
-       #CountAl2O3[i]=quad(p3,E_R2[i],E_R2[i+1],epsrel=1e-4)[0]
+       CountAl2O3[i]=quad(p3,E_R2[i],E_R2[i+1],epsrel=1e-4)[0]
    ##    CountI[i]=quad(p7,E_R1[i],E_R1[i+1],epsrel=1e-4)[0]
    ##    CountNa[i]=quad(p8,E_R1[i],E_R1[i+1],epsrel=1e-4)[0]
    ##    CountNaI[i]=CountI[i]+CountNa[i]
@@ -539,13 +566,13 @@ for time in time_values[ll:hl]:
        ########################################################################
        ##  Generating recoil energy events in Al2O3 as per the distribution  ##
        ########################################################################
-##       numevtsAl2O3=np.random.poisson(sum(CountAl2O3))   ## num of events to simulate assume a poisson statistics with mean given by the expected number
-##   ##    print("Run Number: ",run)
-##   ##    print("Number of events simulated in Sapphire: ", numevtsAl2O3)
-##       numsimevtAl2O3[run] = numevtsAl2O3
-##       evtErecAl2O3_noRes = draw_from_hist(CountAl2O3, E_R2, numevtsAl2O3)
-##       evtErecAl2O3 = [np.random.normal(er,sigESapphire(er)) for er in evtErecAl2O3_noRes]
-##       evtsimallsap=np.append(evtsimallsap,evtErecAl2O3)
+       numevtsAl2O3=np.random.poisson(sum(CountAl2O3))   ## num of events to simulate assume a poisson statistics with mean given by the expected number
+   ##    print("Run Number: ",run)
+   ##    print("Number of events simulated in Sapphire: ", numevtsAl2O3)
+       numsimevtAl2O3[run] = numevtsAl2O3
+       evtErecAl2O3_noRes = draw_from_hist(CountAl2O3, E_R2, numevtsAl2O3)
+       evtErecAl2O3 = [np.random.normal(er,sigESapphire(er)) for er in evtErecAl2O3_noRes]
+       evtsimallsap=np.append(evtsimallsap,evtErecAl2O3)
 ##       evtErecAl2O3=np.array(evtErecAl2O3)
        
        
@@ -656,6 +683,14 @@ for time in time_values[ll:hl]:
    for word in lh:
        lineh=lineh+word
    wf.writelines(lineh+'\n')
+
+   histSap = pl.hist(evtsimallsap,bins=binsfr3d)
+   hvalsSap = histSap[0]/numruns
+   lhSap = np.array([[str(hvalsSap[i]),'\t'] for i in range(len(hvalsSap))]).reshape(2*len(hvalsSap))
+   linehSap=''
+   for word in lhSap:
+       linehSap=linehSap+word
+   wfsap.writelines(linehSap+'\n')
 ##   pl.show()
    
      
@@ -665,6 +700,7 @@ for time in time_values[ll:hl]:
 ##    line2 = line2 + " \t "+str(avgNumEvtGe10eVth[key])+" \t "+str(avgNumEvtGe100eVth[key])+" \t "+str(avgNumEvtGe170eVth[key])+" \t "+str(stdevNumEvtGe10eVth[key])+" \t "+str(stdevNumEvtGe100eVth[key])+" \t "+str(stdevNumEvtGe170eVth[key])+"\n"
 ##    wf.writelines(line2)
 wf.close()
+wfsap.close()
 
 ##writefnameSap = "SNn_Counts_Sap"+time_values[ll]+"s-"+time_values[hl-1]+"s.dat"
 ##wf = open("data/intp3003_Sap/"+writefnameSap,'wt')
