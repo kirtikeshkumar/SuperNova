@@ -127,7 +127,7 @@ def diffflux(E,t,f_E0,f_L):
     f_E0: function giving average Energy at time t
     f_L: function giving Luminosity at time t
     """    
-    T = f_E0(t)/3.1514                       ## in MeV
+    T = f_E0(t)/3.1514*3.75/3.1514                       ## in MeV
     F3 = 5.6822                              ## integral _0^inf (x^3)/(exp(x)-1)dx
     bet = 1.0/T
     erg2MeV = 624151
@@ -445,7 +445,7 @@ pl.show()
 ########################################################################
 ##             Define Ionization yeild and its derivative             ##
 ########################################################################
-def QL(E_R,Z=Z_Ge,A=A_Ge,mod="mix"): #Lindhard Ionization yeild
+def QL(E_R,Z=Z_Ge,A=A_Ge,mod="Lin"): #Lindhard Ionization yeild
     ## Lindhard parameters
     
     if(mod=="Lin"):

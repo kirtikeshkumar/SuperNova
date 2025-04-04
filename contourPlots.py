@@ -6,10 +6,13 @@ from matplotlib.ticker import LogLocator
 
 plt.rcParams.update({
     'font.weight': 'bold',
+    'font.family': 'serif',  
+    'font.serif': ['Times New Roman'],  # Specify Times New Roman
     'axes.labelweight': 'bold',
     'axes.linewidth': 3,  # Thicker edges for the plot
     'axes.titlesize': 35,         # Font size for the plot title
-    'axes.labelsize': 30,         # Font size for x and y labels
+    'axes.labelsize': 22,         # Font size for x and y labels
+    'axes.labelpad': 12,          # spacing between axis label and axis
     'legend.fontsize': 24,        # Font size for legend text
     'legend.title_fontsize': 26,  # Font size for legend title
     'xtick.direction': 'in',  # Ticks pointing inside
@@ -22,8 +25,8 @@ plt.rcParams.update({
     'ytick.minor.size': 5,       # Length of minor ticks
     'xtick.minor.width': 1,      # Thickness of minor ticks
     'ytick.minor.width': 1,      # Thickness of minor ticks
-    'xtick.labelsize': 24,       # Font size for tick labels
-    'ytick.labelsize': 24,       # Font size for tick labels
+    'xtick.labelsize': 17,       # Font size for tick labels
+    'ytick.labelsize': 17,       # Font size for tick labels
 })
 
 massInCode  = 10.0      ## the mass of detector for which counts are calculated
@@ -36,7 +39,7 @@ mu          = np.array([j/i**2/1000**2 for j in mass for i in dist]) #factor of 
 
 norm        = 1.0/massInCode * distInCode**2 * mu
 
-bgnorm      = 2000 * 20/86400 * mass #2000 from 2 MeV energy range, 20/86400 from 20 seconds
+bgnorm      = 500 * 20/86400 * mass #500 from 0.5 MeV energy range, 20/86400 from 20 seconds
 bgnormext   = np.array([])
 for i in range(len(dist)):
     bgnormext = np.append(bgnormext,bgnorm)
@@ -48,23 +51,30 @@ bgrates      = np.array([10, 100])
 ZS100 = {}
 ZG10 = {}
 
+alpha = 20.0/86400 # ratio of time for measuring On and Off signals
+alpha2 = 1.0 + alpha
+alpha1 = alpha2/alpha
+
+
 for bgr in bgrates:
     bgrate = bgr * bgnorm
     sigSap50    = 115 * norm + bgrate
     sigSap100   = 228 * norm + bgrate
     
-    sigGe10ee   = 171 * norm + bgrate
-    sigGe100ee  = 425 * norm + bgrate
+    sigGe10ee   = 177 * norm + bgrate
+    sigGe100ee  = 435 * norm + bgrate
     sigGe170ee  = 158 * norm + bgrate
+    bgrate = bgrate/alpha
     
     ## using Li Ma statistic from https://www.mpe.mpg.de/~ste/data/aa0839.pdf
     
-    Z0muSap50   = np.sqrt(2*(sigSap50*np.log(2*sigSap50/(bgrate+sigSap50)) + bgrate*np.log(2*bgrate/(bgrate+sigSap50))))##np.sqrt(2*(sigSap50*np.log(sigSap50/bgrate) + bgrate - sigSap50)) ##these commented ones need to be rederived in fair.
-    Z0muSap100  = np.sqrt(2*(sigSap100*np.log(2*sigSap100/(bgrate+sigSap100)) + bgrate*np.log(2*bgrate/(bgrate+sigSap100))))##np.sqrt(2*(sigSap100*np.log(sigSap100/bgrate) + bgrate - sigSap100))
+    Z0muSap50   = np.sqrt(2*(sigSap50*np.log(alpha1*sigSap50/(bgrate+sigSap50)) + bgrate*np.log(alpha2*bgrate/(bgrate+sigSap50))))##np.sqrt(2*(sigSap50*np.log(sigSap50/bgrate) + bgrate - sigSap50)) ##these commented ones need to be rederived in fair.
+    Z0muSap100  = np.sqrt(2*(sigSap100*np.log(alpha1*sigSap100/(bgrate+sigSap100)) + bgrate*np.log(alpha2*bgrate/(bgrate+sigSap100))))##np.sqrt(2*(sigSap100*np.log(sigSap100/bgrate) + bgrate - sigSap100))
     
-    Z0muGe10    = np.sqrt(2*(sigGe10ee*np.log(2*sigGe10ee/(bgrate+sigGe10ee)) + bgrate*np.log(2*bgrate/(bgrate+sigGe10ee)))) ##np.sqrt(2*(sigGe10ee*np.log(sigGe10ee/bgrate) + bgrate - sigGe10ee))
-    Z0muGe100   = np.sqrt(2*(sigGe100ee*np.log(2*sigGe100ee/(bgrate+sigGe100ee)) + bgrate*np.log(2*bgrate/(bgrate+sigGe100ee))))
-    Z0muGe170   = np.sqrt(2*(sigGe170ee*np.log(2*sigGe170ee/(bgrate+sigGe170ee)) + bgrate*np.log(2*bgrate/(bgrate+sigGe170ee))))##np.sqrt(2*(sigGe170ee*np.log(sigGe170ee/bgrate) + bgrate - sigGe170ee))
+    Z0muGe10    = np.sqrt(2*(sigGe10ee*np.log(alpha1*sigGe10ee/(bgrate+sigGe10ee)) + bgrate*np.log(alpha2*bgrate/(bgrate+sigGe10ee)))) ##np.sqrt(2*(sigGe10ee*np.log(sigGe10ee/bgrate) + bgrate - sigGe10ee))
+    Z0muGe100   = np.sqrt(2*(sigGe100ee*np.log(alpha1*sigGe100ee/(bgrate+sigGe100ee)) + bgrate*np.log(alpha2*bgrate/(bgrate+sigGe100ee))))
+    Z0muGe170   = np.sqrt(2*(sigGe170ee*np.log(alpha1*sigGe170ee/(bgrate+sigGe170ee)) + bgrate*np.log(alpha2*bgrate/(bgrate+sigGe170ee))))##np.sqrt(2*(sigGe170ee*np.log(sigGe170ee/bgrate) + bgrate - sigGe170ee))
+
     
     ZSapphire50 = Z0muSap50.reshape(len(mass),len(dist))
     ZSapphire100= Z0muSap100.reshape(len(mass),len(dist))
@@ -76,46 +86,77 @@ for bgr in bgrates:
     ZS100[bgr] = ZSapphire100.tolist()
     ZG10[bgr] = ZGe10.tolist()
     
-    mpl.rc('xtick', labelsize=15)
-    mpl.rc('ytick', labelsize=15) 
-    fig,ax=plt.subplots(1,2,sharey=True)
-    ##levels = np.logspace(np.log10(1.0), np.log10(100), num=10)
-    levels = np.append(np.linspace(1.000, 61, num=10),100)
+##    mpl.rc('xtick', labelsize=15)
+##    mpl.rc('ytick', labelsize=15) 
+    fig,ax=plt.subplots(2,1,sharex=True, figsize=(6,12), constrained_layout=True)
+##    ##levels = np.logspace(np.log10(1.0), np.log10(100), num=10)
+    levels = np.append(1,np.linspace(5.000, 50.0, num=10))
+    levels = np.append(levels, 500)
     ##levels=np.array([0.0,0.1,0.5,0.7,1.0,1.25,1.5,1.75,2.0,2.5,3.0,4.0,5.0,10.0,25.0,50.0,1000.0])
     ##a0=ax[0].contourf(X,Y,np.log10(ZSapphire100),levels=levels,vmin=0,vmax=500,cmap = "plasma")
     ##a1=ax[1].contourf(X,Y,np.log10(ZGe10),levels=levels,vmin=0,vmax=500,cmap = "plasma")
     ##a2=ax[2].contourf(X,Y,np.log10(ZGe100),levels=levels,vmin=0,vmax=500,cmap = "plasma")
-    a2=ax[1].contourf(X,Y,ZSapphire50,levels=levels,vmin=0,vmax=50,cmap = "plasma")
-    a0=ax[0].contourf(X,Y,ZGe10,levels=levels,vmin=0,vmax=50,cmap = "plasma")
+    a2=ax[1].contourf(X,Y,ZSapphire50,levels=levels,vmin=0,vmax=50,cmap = "cool")
+    a0=ax[0].contourf(X,Y,ZGe10,levels=levels,vmin=0,vmax=50,cmap = "cool")
     ##a1=ax[1].contourf(X,Y,ZGe100,levels=levels,vmin=0,vmax=50,cmap = "plasma")
 
-    ax[1].contour(X, Y, ZSapphire50, levels=[5], colors='green', linestyles='dashed', linewidths=4)
-    ax[0].contour(X, Y, ZGe10, levels=[5], colors='green', linestyles='dashed', linewidths=4)
+    ax[1].contour(X, Y, ZSapphire50, levels=[5], colors='blue', linewidths=4)
+    ax[0].contour(X, Y, ZGe10, levels=[5], colors='blue', linewidths=4)
     ##ax[1].contour(X, Y, ZGe100, levels=[5], colors='green', linestyles='dashed', linewidths=4)
 
-    ax[1].contour(X, Y, ZSapphire50, levels=[3], colors='black', linewidths=4)
-    ax[0].contour(X, Y, ZGe10, levels=[3], colors='black', linewidths=4)
+    ax[1].contour(X, Y, ZSapphire50, levels=[3], colors='black', linestyles='dashed', linewidths=4)
+    ax[0].contour(X, Y, ZGe10, levels=[3], colors='black', linestyles='dashed', linewidths=4)
     ##ax[1].contour(X, Y, ZGe100, levels=[3], colors='black', linewidths=4)
 
-    ax[1].set_title(r"$Sapphire, E_{th} = 50eV_t$",fontsize=30)
-    ax[0].set_ylabel("detector mass (kg)")#,fontsize=24)
+    fig.supylabel("detector mass (kg)",fontsize=22, fontweight='bold', fontname="Times New Roman")
+
+##    ax[1].set_title(r"$Sapphire, E_{th} = 50eV_t$",fontsize=30)
+##    ax[0].set_ylabel("detector mass (kg)")#,fontsize=24)
     #ax[1].set_ylabel("detector mass (kg)")
     #ax[2].set_ylabel("detector mass (kg)")
-    ax[0].set_title("$Ge, E_{th} = 50eV_{ee}$",fontsize=30)
+##    ax[0].set_title("$Ge, E_{th} = 30eV_{ee}$",fontsize=30)
     ##ax[1].set_title("$Ge , Livermore, E_{th} = 50eV_{ee}$",fontsize=20)
     ax[1].set_xlabel("distance (kpc)")#,fontsize=15)
-    ax[0].set_xlabel("distance (kpc)")#,fontsize=15)
+##    ax[0].set_xlabel("distance (kpc)")#,fontsize=15)
     ##ax[1].set_xlabel("distance (kpc)")#,fontsize=15)
-    ax[1].set_xlim(0.1,1.2)
+    ax[1].set_xlim(0.1,1.5)
     ax[0].set_xlim(0.1,1.5)
     ##ax[1].set_xlim(0.1,1.5)
     fig.colorbar(a2,ax=ax[1])
+    fig.colorbar(a0,ax=ax[0])
     ##plt.gca().xaxis.set_major_locator(LogLocator(base=10.0, numticks=10))
     #plt.colorbar()
     #plt.xlabel("distance (pc)")
     #plt.ylabel("detector mass (kg)")
+    ax[0].grid(alpha=0.5)
+    ax[1].grid(alpha=0.5)
+    ax[0].text(1.2, 4, "(a)", fontsize=25, fontweight='bold', fontname="Times New Roman")
+    ax[1].text(1.2, 4, "(b)", fontsize=25, fontweight='bold', fontname="Times New Roman")
+
     plt.show()
 
+##    fig,ax=plt.subplots(figsize=(9,7.1))
+##    a0=ax.contourf(X,Y,ZGe10,levels=levels,vmin=0,vmax=50,cmap = "cool")
+##    ax.contour(X, Y, ZGe10, levels=[5], colors='blue', linewidths=4)
+##    ax.contour(X, Y, ZGe10, levels=[3], colors='black', linestyles='dashed', linewidths=4)
+##    ax.set_ylabel("detector mass (kg)")
+##    ax.set_xlabel("distance (kpc)")
+##    ax.set_xlim(0.1,1.5)
+##    ax.grid(alpha=0.5)
+##    fig.colorbar(a0)
+##    plt.show()
+##
+##    fig,ax=plt.subplots(figsize=(9,7.1))
+##    a0=ax.contourf(X,Y,ZSapphire50,levels=levels,vmin=0,vmax=50,cmap = "cool")
+##    ax.contour(X, Y, ZSapphire50, levels=[5], colors='blue', linewidths=4)
+##    ax.contour(X, Y, ZSapphire50, levels=[3], colors='black', linestyles='dashed', linewidths=4)
+##    ax.set_ylabel("detector mass (kg)")
+##    ax.set_xlabel("distance (kpc)")
+##    ax.set_xlim(0.1,1.5)
+##    ax.grid(alpha=0.5)
+##    fig.colorbar(a0)
+##    plt.show()
+    
 # plt.plot(dist,ZGe10[0],label=f'{mass[0]} kg')
 # plt.plot(dist,ZGe10[1],label=f'{mass[1]} kg')
 # plt.legend()
@@ -138,7 +179,7 @@ plt.hlines(5, 0, 1.5, color='black', linestyles='dashed')
 plt.text(1.4, 5.5, s=r'5$\sigma$', color='black')
 plt.tick_params(axis='both', which='major', labelsize=12)
 plt.legend()
-plt.savefig('SignificanceBands.pdf')
+##plt.savefig('SignificanceBands.pdf')
 plt.show()
 
 ##countsSapphire=np.array([686.74/30*j*196*196/i/i for j in mass for i in dist])
